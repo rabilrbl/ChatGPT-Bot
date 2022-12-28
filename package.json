@@ -2,6 +2,7 @@
   "name": "ChatGPT-Bot",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "repository": "https://github.com/rabilrbl/ChatGPT-Bot",
   "author": "Mohammed Rabil K",
   "license": "MIT",
@@ -9,6 +10,10 @@
   "dependencies": {
     "chatgpt": "^3.3.6",
     "deta": "^1.1.0",
+    "puppeteer": "^19.4.1",
     "telegraf": "^4.11.2"
+  },
+  "scripts": {
+    "start": "node index.js"
   }
 }
