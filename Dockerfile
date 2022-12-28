@@ -1,23 +1,34 @@
-FROM ubuntu:latest 
+FROM alpine
 
-# Install Node via nvm
-RUN apt-get update && apt-get install -y curl
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash 
-ENV NVM_DIR /root/.nvm
-ENV NODE_VERSION lts
-RUN . $NVM_DIR/nvm.sh && nvm install $NODE_VERSION && nvm use $NODE_VERSION
+# Installs latest Chromium (100) package.
+RUN apk add --no-cache \
+      chromium \
+      nss \
+      freetype \
+      harfbuzz \
+      ca-certificates \
+      ttf-freefont \
+      nodejs \
+      yarn
 
-# Install google chrome stable
-RUN apt-get update && apt-get install -y wget gnupg2
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
-RUN echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list
-RUN apt-get update && apt-get install -y google-chrome-stable
+
+# Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+
+
+# Add user so we don't need --no-sandbox.
+RUN addgroup -S pptruser && adduser -S -G pptruser pptruser \
+    && mkdir -p /home/pptruser/Downloads /app \
+    && chown -R pptruser:pptruser /home/pptruser \
+    && chown -R pptruser:pptruser /app
 
 COPY . /app
 WORKDIR /app
+RUN yarn install
 
-# Install app dependencies
-RUN . $NVM_DIR/nvm.sh && npm install
+# Run everything after as non-privileged user.
+USER pptruser
 
-# Run the app
-CMD . $NVM_DIR/nvm.sh && npm run start
+# Run the web service on container startup.
+CMD [ "node", "index.js" ]
